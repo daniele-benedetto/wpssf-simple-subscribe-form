@@ -6,6 +6,8 @@
    * Author:				Daniele Benedetto
    */
 
+   require_once('export-subscribe.php');
+
    add_action( 'wp_ajax_newFormSubscriber', 'newFormSubscriber' );
    add_action( 'wp_ajax_nopriv_newFormSubscriber', 'newFormSubscriber' );
 
