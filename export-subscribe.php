@@ -114,7 +114,7 @@
 
             $subscribes = get_posts($args);
             echo $doc_begin;
-            $headers = array('ID', 'Nome', 'Cognome', 'Email');
+            $headers = array('ID', 'Nome', 'Cognome', 'Email', 'Cellulare','Azienda/Ente/Testata', 'Privacy', 'Newsletter');
             echo $pre . implode( $separetor, $headers ) . $breaker;
 
                 foreach($subscribes as $subscribe):
@@ -122,12 +122,35 @@
                     $subscribe_name = get_post_meta( $subscribe->ID, 'subscribes_name', true );
                     $subscribe_surname = get_post_meta( $subscribe->ID, 'subscribes_surname', true );
                     $subscribe_email = get_post_meta( $subscribe->ID, 'subscribes_email', true );
+                    $subscribe_mobile = get_post_meta( $subscribe->ID, 'subscribes_mobile', true );
+                    $subscribe_company = get_post_meta( $subscribe->ID, 'subscribes_company', true );
+                    $documents_privacy = get_post_meta( $subscribe->ID, 'documents_privacy', true );
+                    $subscribe_newsletter = get_post_meta( $subscribe->ID, 'subscribes_newsletter', true );
+
+                    $accept_privacy = '';
+                    $accept_newsletter = '';
+
+                    if($documents_privacy == 'true') {
+                      $accept_privacy = 'Accettata';
+                    } else {
+                      $accept_privacy = 'Non accettata';
+                    }
+
+                    if($subscribe_newsletter == 'true') {
+                      $accept_newsletter = 'Accettata';
+                    } else {
+                      $accept_newsletter = 'Non accettata';
+                    }
 
                     if($is_csv){
                         $data[0] = '"' .  $subscribe->ID . '"';
                         $data[1] = '"' .  $subscribe_name . '"';
                         $data[2] = '"' .  $subscribe_surname . '"';
                         $data[3] = '"' .  $subscribe_email . '"';
+                        $data[4] = '"' .  $subscribe_mobile . '"';
+                        $data[5] = '"' .  $subscribe_company . '"';
+                        $data[6] = '"' .  $accept_privacy . '"';
+                        $data[7] = '"' .  $accept_newsletter . '"';
                     }
 
                     echo $pre . implode( $separetor, $data ) . $breaker;

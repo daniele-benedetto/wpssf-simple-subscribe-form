@@ -8,6 +8,8 @@
 
    require_once('export-subscribe.php');
 
+   $hostEmail = 'daniele.benedetto@mediagroup98.com';
+
    add_action( 'wp_ajax_newFormSubscriber', 'newFormSubscriber' );
    add_action( 'wp_ajax_nopriv_newFormSubscriber', 'newFormSubscriber' );
 
@@ -30,10 +32,18 @@
             $name = sanitize_text_field($_POST['name']);
             $surname = sanitize_text_field($_POST['surname']);
             $email = sanitize_text_field($_POST['email']);
+            $mobile = sanitize_text_field($_POST['mobile']);
+            $company = sanitize_text_field($_POST['company']);
+            $privacy = sanitize_text_field($_POST['privacy']);
+            $newsletter = sanitize_text_field($_POST['newsletter']);
 
             update_field('subscribes_name',$name,$result);
             update_field('subscribes_surname',$surname,$result);
             update_field('subscribes_email',$email,$result);
+            update_field('subscribes_mobile',$mobile,$result);
+            update_field('subscribes_company',$company,$result);
+            update_field('documents_privacy',$privacy,$result);
+            update_field('subscribes_newsletter',$newsletter,$result);
 
             return true;
           }
@@ -63,50 +73,67 @@
       <div class="alert alert-danger" id="alert_incomplete_field" style="display:none">
         <strong>Attenzione, compilare tutti i campi per proseguire.</strong>
       </div>
-      <form action="" method="post">
+      <form  class="subscribes-form" id='subscribes_form' action="" method="post">
         <div class="col-sm-6">
-          <label for="subscribes_name">Nome:</label>
+          <label for="subscribes_name">Nome:*</label>
           <input type="text" id="subscribes_name" name="subscribes_name" required>
         </div>
         <div class="col-sm-6">
-          <label for="subscribs_surname">Cognome:</label>
+          <label for="subscribs_surname">Cognome:*</label>
           <input type="text" id="subscribs_surname" name="subscribs_surname" required>
         </div>
         <div class="col-sm-6">
-          <label for="subscribes_email">Email:</label>
+          <label for="subscribes_email">Email:*</label>
           <input type="email" id="subscribes_email" name="subscribes_email" required>
+        </div>
+        <div class="col-sm-6">
+          <label for="subscribes_mobile">Cellulare:</label>
+          <input type="email" id="subscribes_mobile" name="subscribes_mobile">
+        </div>
+        <div class="col-sm-6">
+          <label for="subscribes_company">Azienda/Ente/Testata:*</label>
+          <input type="text" id="subscribes_company" name="subscribes_company" required>
         </div>
         <div class="col-sm-12">
           <label style="color:black">
             <input type="checkbox" id="documents_privacy" name="documents_privacy" required>
             <small>
-              Acconsento al trattamento dei dati personali.
+              Acconsento al trattamento dei dati personali.*
               <a href="<?php echo get_home_url(); ?>/privacy-policy/" target="_blank">
                 Leggi l'informativa
-              </a> resa ai sensi dell'art. 13 del RGPD (Regolamento Generale Protezione Dati) 2016/679 - il mancato consenso non permette il download dei materiali.
+              </a> resa ai sensi dell'art. 13 del RGPD (Regolamento Generale Protezione Dati) 2016/679 - il mancato consenso non permette l'iscrizione.
             </small>
           </label>
+          <label style="color:black">
+            <input type="checkbox" id="subscribes_newsletter" name="subscribes_newsletter">
+            <small>
+                desidero ricevere comunicazioni in merito ad eventi e attività di SMA Società di Mutua Assistenza.
+            </small>
+          </label>
+          <br/><i style="color: red">i campi contrassegnati * sono obbligatori</i>
         </div>
         <div class="col-sm-12">
-        <input style="margin-top:25px;border-color:white" id="subscribe_form" type="submit" name="submit" value="Invia e Scarica">
+        <input style="margin-top:25px;border-color:white; min-width: 200px;" id="subscribe_form" type="submit" name="submit" value="Invia">
         </div>
       </form>
 
   <!-- Script di Invio -->
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
   <script>
 
   jQuery('#subscribe_form').on('click',function(event)
   {
     event.preventDefault();
-
     var name = jQuery('#subscribes_name').val()
     var surname = jQuery('#subscribs_surname').val()
     var email = jQuery('#subscribes_email').val()
+    var mobile = jQuery('#subscribes_mobile').val()
+    var company = jQuery('#subscribes_company').val()
+    var privacy = document.getElementById('documents_privacy').checked
+    var newsletter = document.getElementById('subscribes_newsletter').checked
 
-
-    if(document.getElementById('documents_privacy').checked && name != "" && name != undefined && surname != "" && surname != undefined && email != "" && email != undefined )
+    if(document.getElementById('documents_privacy').checked &&  name != "" && name != undefined && surname != "" && surname != undefined && email != "" && email != undefined && company != "" && company != undefined)
     {
-
       jQuery.ajax({
           type: 'POST',
           url: '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -114,6 +141,10 @@
               'name': name,
               'surname': surname,
               'email': email,
+              'mobile' : mobile,
+              'company' : company,
+              'privacy' : privacy,
+              'newsletter' : newsletter,
               'action': 'newFormSubscriber' //this is the name of the AJAX method called in WordPress
           }, success: function (result) {
             if(result)
@@ -121,7 +152,15 @@
               jQuery('#alert_incomplete_field').hide('fast')
               jQuery('#alert_failure').hide('fast')
               jQuery('#alert_success').show('fast')
-              downloadItems();
+              jQuery('#subscribes_form').hide('fast')
+
+              Email.send({
+                SecureToken: "758b7862-ba19-4ee0-9ab0-744d20ad49bd",
+                To : email,
+                From : "daniele.benedetto@mediagroup98.com",
+                Subject : "Oggetto della mail",
+                Body : "Testo della mail"
+                })
             }
             else {
               jQuery('#alert_incomplete_field').hide('fast')
@@ -187,44 +226,12 @@
     padding: 10px;
     margin: 0px;
   }
-  /* The Modal (background) */
-  .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 100; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+
+  #subscribe_form:hover{
+    border:1px solid orange!important;
   }
 
-  /* Modal Content/Box */
-  .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto; /* 15% from the top and centered */
-    padding: 20px;
-    display: flow-root;
-    border: 1px solid #888;
-    width: 50%; /* Could be more or less, depending on screen size */
-  }
 
-  /* The Close Button */
-  .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
-
-  .close:hover,
-  .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
   @media only screen and (max-width: 1000px) {
     .col-sm-6 {
       width: 100%;
@@ -252,12 +259,12 @@
           'subscribes',
           array(
               'labels'      => array(
-                  'name'          => __( 'Registrazioni', 'subscribes' ),
+                  'name'          => __( 'Registro Utenti Assemblea', 'subscribes' ),
                   'singular_name' => __( 'Registro', 'subscribe' ),
               ),
               'public'            => true,
               'public_quaryable'  => true,
-              'menu_icon'         => 'dashicons-book',
+              'menu_icon'         => 'dashicons-tickets',
               'supports'          => array(
                   'title',
               ),
@@ -298,7 +305,7 @@
       echo '<label style="font-weight:bold;" for="subscribes_surname">';
       _e( 'Cognome', 'subscribes_surname' );
       echo '</label> ';
-      echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_surname" name="wpmdg_surname" value="' . esc_attr( $value_surname ) . '" />';
+      echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_surname" name="subscribes_surname" value="' . esc_attr( $value_surname ) . '" />';
       echo '<hr/>';
       //email
       $value_email = get_post_meta( $post->ID, 'subscribes_email', true );
@@ -306,6 +313,46 @@
       _e( 'Email', 'subscribes_email' );
       echo '</label> ';
       echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_email" name="subscribes_email" value="' . esc_attr( $value_email ) . '" />';
+      echo '<hr/>';
+      //mobile
+      $value_mobile = get_post_meta( $post->ID, 'subscribes_mobile', true );
+      echo '<label style="font-weight:bold;" for="subscribes_mobile">';
+      _e( 'Cellulare', 'subscribes_mobile' );
+      echo '</label> ';
+      echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_mobile" name="subscribes_mobile" value="' . esc_attr( $value_mobile ) . '" />';
+      echo '<hr/>';
+      //company
+      $value_company = get_post_meta( $post->ID, 'subscribes_company', true );
+      echo '<label style="font-weight:bold;" for="subscribes_company">';
+      _e( 'Azienda/Ente/Testata', 'subscribes_company' );
+      echo '</label> ';
+      echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_company" name="subscribes_company" value="' . esc_attr( $value_company ) . '" />';
+      echo '<hr/>';
+      //privacy
+      $value_privacy = get_post_meta( $post->ID, 'documents_privacy', true );
+      $accept_privacy = '';
+      if($value_privacy == 'true'){
+        $accept_privacy = 'Accettata';
+      } else {
+        $accept_privacy = 'Non accettata';
+      }
+      echo '<label style="font-weight:bold;" for="documents_privacy">';
+      _e( 'Accettazione privacy', 'documents_privacy' );
+      echo '</label> ';
+      echo '<input style="width:100%; margin:10px 0;" type="text" id="documents_privacy" name="documents_privacy" value="' . esc_attr( $accept_privacy ) . '" />';
+      echo '<hr/>';
+      //newsletter
+      $value_newsletter = get_post_meta( $post->ID, 'subscribes_newsletter', true );
+      $accept_newsletter = '';
+      if($value_newsletter == 'true'){
+        $accept_newsletter = 'Accettata';
+      } else {
+        $accept_newsletter = 'Non accettata';
+      }
+      echo '<label style="font-weight:bold;" for="subscribes_newsletter">';
+      _e( 'Accettazione Newsletter', 'subscribes_newsletter' );
+      echo '</label> ';
+      echo '<input style="width:100%; margin:10px 0;" type="text" id="subscribes_newsletter" name="subscribes_newsletter" value="' . esc_attr( $accept_newsletter ) . '" />';
       echo '<hr/>';
   }
 
@@ -335,8 +382,16 @@
       $name = sanitize_text_field( $_POST['subscribes_name'] );
       $surname = sanitize_text_field($_POST['subscribes_surname']);
       $email = sanitize_text_field($_POST['subscribes_email']);
+      $mobile = sanitize_text_field($_POST['subscribes_mobile']);
+      $company = sanitize_text_field($_POST['subscribes_company']);
+      $privacy = sanitize_text_field($_POST['documents_privacy']);
+      $newsletter = sanitize_text_field($_POST['subscribes_newsletter']);
 
       update_post_meta( $post_id, 'subscribes_name', $name );
       update_post_meta( $post_id, 'subscribes_surname', $surname );
       update_post_meta( $post_id, 'subscribes_email', $email );
+      update_post_meta( $post_id, 'subscribes_mobile', $mobile );
+      update_post_meta( $post_id, 'subscribes_company', $company );
+      update_post_meta( $post_id, 'documents_privacy', $privacy );
+      update_post_meta( $post_id, 'subscribes_newsletter', $newsletter );
   }
