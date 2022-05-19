@@ -114,7 +114,7 @@
 
             $subscribes = get_posts($args);
             echo $doc_begin;
-            $headers = array('ID', 'Nome', 'Cognome', 'Email', 'Cellulare','Azienda/Ente/Testata', 'Privacy', 'Newsletter');
+            $headers = array('ID', 'Nome', 'Cognome', 'Email', 'Cellulare', 'Azienda/Ente/Testata', 'Ruolo', 'Socio', 'Privacy', 'Newsletter');
             echo $pre . implode( $separetor, $headers ) . $breaker;
 
                 foreach($subscribes as $subscribe):
@@ -124,21 +124,38 @@
                     $subscribe_email = get_post_meta( $subscribe->ID, 'subscribes_email', true );
                     $subscribe_mobile = get_post_meta( $subscribe->ID, 'subscribes_mobile', true );
                     $subscribe_company = get_post_meta( $subscribe->ID, 'subscribes_company', true );
+                    $subscribe_role = get_post_meta( $subscribe->ID, 'subscribes_role', true );
+                    $subscribe_partner = get_post_meta( $subscribe->ID, 'subscribes_partner', true );
                     $documents_privacy = get_post_meta( $subscribe->ID, 'documents_privacy', true );
                     $subscribe_newsletter = get_post_meta( $subscribe->ID, 'subscribes_newsletter', true );
-
+                    $is_partner = '';
                     $accept_privacy = '';
                     $accept_newsletter = '';
 
-                    if($documents_privacy == 'true') {
+                    if($subscribe_partner == 'true')
+                    {
+                      $is_partner = 'Si';
+                    }
+                    else
+                    {
+                      $is_partner = 'No';
+                    }
+
+                    if($documents_privacy == 'true')
+                    {
                       $accept_privacy = 'Accettata';
-                    } else {
+                    }
+                    else
+                    {
                       $accept_privacy = 'Non accettata';
                     }
 
-                    if($subscribe_newsletter == 'true') {
+                    if($subscribe_newsletter == 'true')
+                    {
                       $accept_newsletter = 'Accettata';
-                    } else {
+                    }
+                    else
+                    {
                       $accept_newsletter = 'Non accettata';
                     }
 
@@ -149,8 +166,10 @@
                         $data[3] = '"' .  $subscribe_email . '"';
                         $data[4] = '"' .  $subscribe_mobile . '"';
                         $data[5] = '"' .  $subscribe_company . '"';
-                        $data[6] = '"' .  $accept_privacy . '"';
-                        $data[7] = '"' .  $accept_newsletter . '"';
+                        $data[6] = '"' .  $subscribe_role . '"';
+                        $data[7] = '"' .  $is_partner . '"';
+                        $data[8] = '"' .  $accept_privacy . '"';
+                        $data[9] = '"' .  $accept_newsletter . '"';
                     }
 
                     echo $pre . implode( $separetor, $data ) . $breaker;
