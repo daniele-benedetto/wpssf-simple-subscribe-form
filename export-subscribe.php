@@ -1,13 +1,13 @@
 <?php
-  if ( ! class_exists( 'Mdg_Csv_Export_Subscribe' ) )
+  if ( ! class_exists( 'wpssf_Csv_Export_Subscribe' ) )
   {
 
-    define( 'MDG_CSV_EXPORT_SUBSCRIBE_VERSION', '0.0.1' );
+    define( 'wpssf_CSV_EXPORT_SUBSCRIBE_VERSION', '0.0.1' );
     if ( is_admin() ) {
-        add_action( 'init', array ( 'Mdg_Csv_Export_Subscribe', 'get_instance' ), 0 );
+        add_action( 'init', array ( 'wpssf_Csv_Export_Subscribe', 'get_instance' ), 0 );
     }
 
-    class Mdg_Csv_Export_Subscribe{
+    class wpssf_Csv_Export_Subscribe{
 
         private static $instance = null;
         public $text_domain = 'wp-subscribe-exporter';
@@ -23,7 +23,7 @@
         {
             if (is_admin() ) {
                 add_action( 'admin_menu', array( $this, 'add_admin_pages' ) );
-                add_action( 'init', array( $this, 'mdg_subscribe_generate_data' ) );
+                add_action( 'init', array( $this, 'wpssf_subscribe_generate_data' ) );
             }
         }
 
@@ -34,7 +34,7 @@
 
         public function add_admin_pages()
         {
-            add_submenu_page( 'edit.php?post_type=subscribes', __( 'Esporta Registrati'  ), __( 'Esporta Registrati'  ), 'list_users', $this->text_domain, array( $this, 'mdg_subscribe_export_page' ) );
+            add_submenu_page( 'edit.php?post_type=subscribes', __( 'Esporta Registrati'  ), __( 'Esporta Registrati'  ), 'list_users', $this->text_domain, array( $this, 'wpssf_subscribe_export_page' ) );
         }
 
         public function sanitize( $value )
@@ -45,7 +45,7 @@
             return $value;
         }
 
-        public function mdg_subscribe_export_page()
+        public function wpssf_subscribe_export_page()
         {
             if ( ! current_user_can( 'list_users' ) ) {
                 wp_die( __( 'You do not have sufficient permissions to access this page.', $this->text_domain ) );
@@ -69,7 +69,7 @@
           <?php
         }
 
-        public function mdg_subscribe_generate_data() {
+        public function wpssf_subscribe_generate_data() {
 
             global $wpdb;
 
@@ -114,7 +114,7 @@
 
             $subscribes = get_posts($args);
             echo $doc_begin;
-            $headers = array('ID', 'Nome', 'Cognome', 'Email', 'Cellulare', 'Azienda/Ente/Testata', 'Ruolo', 'Socio', 'Privacy', 'Newsletter');
+            $headers = array('ID', 'Nome', 'Cognome', 'Email', 'Cellulare', 'Privacy', 'Newsletter');
             echo $pre . implode( $separetor, $headers ) . $breaker;
 
                 foreach($subscribes as $subscribe):
@@ -123,23 +123,10 @@
                     $subscribe_surname = get_post_meta( $subscribe->ID, 'subscribes_surname', true );
                     $subscribe_email = get_post_meta( $subscribe->ID, 'subscribes_email', true );
                     $subscribe_mobile = get_post_meta( $subscribe->ID, 'subscribes_mobile', true );
-                    $subscribe_company = get_post_meta( $subscribe->ID, 'subscribes_company', true );
-                    $subscribe_role = get_post_meta( $subscribe->ID, 'subscribes_role', true );
-                    $subscribe_partner = get_post_meta( $subscribe->ID, 'subscribes_partner', true );
                     $documents_privacy = get_post_meta( $subscribe->ID, 'documents_privacy', true );
                     $subscribe_newsletter = get_post_meta( $subscribe->ID, 'subscribes_newsletter', true );
-                    $is_partner = '';
                     $accept_privacy = '';
                     $accept_newsletter = '';
-
-                    if($subscribe_partner == 'true')
-                    {
-                      $is_partner = 'Si';
-                    }
-                    else
-                    {
-                      $is_partner = 'No';
-                    }
 
                     if($documents_privacy == 'true')
                     {
@@ -165,9 +152,6 @@
                         $data[2] = '"' .  $subscribe_surname . '"';
                         $data[3] = '"' .  $subscribe_email . '"';
                         $data[4] = '"' .  $subscribe_mobile . '"';
-                        $data[5] = '"' .  $subscribe_company . '"';
-                        $data[6] = '"' .  $subscribe_role . '"';
-                        $data[7] = '"' .  $is_partner . '"';
                         $data[8] = '"' .  $accept_privacy . '"';
                         $data[9] = '"' .  $accept_newsletter . '"';
                     }
